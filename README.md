@@ -8,13 +8,18 @@ You can add models from huggingface to the selection of models in setting. The s
 is `Hugginface model names for promptgen, separated by comma`, and its default value is
 just:
 ```
-AUTOMATIC/promptgen-lexart
+AUTOMATIC/promptgen-lexart, AUTOMATIC/promptgen-majinai-safe, AUTOMATIC/promptgen-majinai-unsafe
 ```
-That's a small GPT2 model I finetuned on lexica.art dataset. To add more, add more items to the setting,
-for example like this:
+Those are GPT2 finetunes I did on various datasets:
+
+- [AUTOMATIC/promptgen-lexart](https://huggingface.co/AUTOMATIC/promptgen-lexart): Finetuned distilgpt2 for 100 epochs on prompts scraped from lexica.art
+- [AUTOMATIC/promptgen-majinai-safe](https://huggingface.co/AUTOMATIC/promptgen-majinai-safe): Finetuned distilgpt2 for 40 epochs on safe prompts scraped from majinai.art.
+- [AUTOMATIC/promptgen-majinai-unsafe](https://huggingface.co/AUTOMATIC/promptgen-majinai-unsafe): Finetuned distilgpt2 for 40 epochs on unsafe prompts scraped from majinai.art.
+
+To add more models, add more items to the setting, for example like this:
 
 ```
-AUTOMATIC/promptgen-lexart, succinctly/text2image-prompt-generator, microsoft/Promptist
+AUTOMATIC/promptgen-lexart, AUTOMATIC/promptgen-majinai-safe, AUTOMATIC/promptgen-majinai-unsafe, succinctly/text2image-prompt-generator, microsoft/Promptist
 ```
 
 Reloading UI is required to apply this setting.

@@ -229,7 +229,7 @@ def add_tab():
 def on_ui_settings():
     section = ("promptgen", "Promptgen")
 
-    shared.opts.add_option("promptgen_names", shared.OptionInfo("AUTOMATIC/promptgen-lexart", "Hugginface model names for promptgen, separated by comma", section=section))
+    shared.opts.add_option("promptgen_names", shared.OptionInfo("AUTOMATIC/promptgen-lexart, AUTOMATIC/promptgen-majinai-safe, AUTOMATIC/promptgen-majinai-unsafe", "Hugginface model names for promptgen, separated by comma", section=section))
     shared.opts.add_option("promptgen_device", shared.OptionInfo("gpu", "Device to use for text generation", gr.Radio, {"choices": ["gpu", "cpu"]}, section=section))
 
 
