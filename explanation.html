@@ -1,0 +1,49 @@
+<div id="promptgen_explanation_show" >
+<a style="font-weight: bold; cursor: pointer" onclick="gradioApp().getElementById('promptgen_explanation').style.display=''; gradioApp().getElementById('promptgen_explanation_show').style.display='none'; return false">
+Information
+</a>
+</div>
+<div style="display:none" id="promptgen_explanation">
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Top K</td>
+            <td>When appending a word to the prompt, pick out of K most likely candidates.</td>
+        </tr>
+        <tr>
+            <td>Sampling mode</td>
+            <td>When appending a word to the prompt, pick out of most likely candidates whose total probability is reater than P.</td>
+        </tr>
+        <tr>
+            <td>Number of beams</td>
+            <td>Track multiple copies of each prompt as it's being generated, and when done pick one with most likelihood.</td>
+        </tr>
+        <tr>
+            <td>Temperature</td>
+            <td>When appending a word to the prompt, the greater temperature is, the more chance to pick an unlikely candidate. At 0, all generated prompts are the same.</td>
+        </tr>
+        <tr>
+            <td>Repetition penalty</td>
+            <td>The greater the value is, the less likely repeated tearms are to appear in prompt.</td>
+        </tr>
+        <tr>
+            <td>Length preference</td>
+            <td>Negative values tend to produce shorter prompt, positive - longer. Only works with Number of beams > 0.</td>
+        </tr>
+        <tr>
+            <td>Min length</td>
+            <td>Minimum length of generated prompt in tokens.</td>
+        </tr>
+        <tr>
+            <td>Max length</td>
+            <td>Maximum length of generated prompt in tokens.</td>
+        </tr>
+        </tbody>
+    </table>
+</div>

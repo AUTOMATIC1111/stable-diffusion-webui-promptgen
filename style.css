@@ -1,0 +1,50 @@
+
+#promptgen_generate{
+    height: 100%
+}
+
+#promptgen_main{
+    margin-top: 1em;
+}
+
+#tab_promptgen table tr{
+    height: 1px;
+}
+
+#tab_promptgen table tr td{
+    height: 100%;
+    padding: 0.3em;
+}
+
+#tab_promptgen .prompt{
+    border: 1px solid rgba(128, 128, 128, 0.2);
+    height: 100%;
+}
+
+#tab_promptgen .sendto{
+    width: 8em;
+}
+
+#tab_promptgen .sendto a{
+    cursor: pointer;
+    display: block;
+    margin: 0.2em;
+    padding: 0.4em;
+}
+
+#tab_promptgen .gr-form{
+    border: none;
+    padding-bottom: 0.5em;
+}
+
+#promptgen_explanation table{
+    border-collapse: collapse;
+}
+
+#promptgen_explanation table td, #promptgen_explanation table th{
+    border: 1px solid rgba(128,128,128,0.1);
+    vertical-align: top;
+
+}
+
+
