@@ -5,7 +5,7 @@ import time
 import torch
 import transformers
 
-from modules import shared
+from modules import shared, generation_parameters_copypaste
 
 from modules import scripts, script_callbacks, devices, ui
 import gradio as gr
@@ -139,19 +139,22 @@ def generate(id_task, model_name, batch_count, batch_size, text, *args):
     return markup, ''
 
 
-def find_prompt_input(fields):
-    field = [x for x in fields if x[1] == "Prompt"][0]
-    return field[0]
+def find_prompts(fields):
+    field_prompt = [x for x in fields if x[1] == "Prompt"][0]
+    field_negative_prompt = [x for x in fields if x[1] == "Negative prompt"][0]
+    return [field_prompt[0], field_negative_prompt[0]]
+
+
+def send_prompts(text):
+    params = generation_parameters_copypaste.parse_generation_parameters(text)
+    negative_prompt = params.get("Negative prompt", "")
+    return params.get("Prompt", ""), negative_prompt or gr.update()
 
 
 def add_tab():
     list_available_models()
 
     with gr.Blocks(analytics_enabled=False) as tab:
-        selected_text = gr.TextArea(elem_id='promptgen_selected_text', visible=False)
-        send_to_txt2img = gr.Button(elem_id='promptgen_send_to_txt2img', visible=False)
-        send_to_img2img = gr.Button(elem_id='promptgen_send_to_img2img', visible=False)
-
         with gr.Row():
             with gr.Column(scale=80):
                 prompt = gr.Textbox(label="Prompt", elem_id="promptgen_prompt", show_label=False, lines=2, placeholder="Beginning of the prompt (press Ctrl+Enter or Alt+Enter to generate)").style(container=False)
@@ -159,7 +162,11 @@ def add_tab():
                 submit = gr.Button('Generate', elem_id="promptgen_generate", variant='primary')
 
         with gr.Row(elem_id="promptgen_main"):
-            with gr.Column():
+            with gr.Column(variant="compact"):
+                selected_text = gr.TextArea(elem_id='promptgen_selected_text', visible=False)
+                send_to_txt2img = gr.Button(elem_id='promptgen_send_to_txt2img', visible=False)
+                send_to_img2img = gr.Button(elem_id='promptgen_send_to_img2img', visible=False)
+
                 with FormRow():
                     model_selection = gr.Dropdown(label="Model", elem_id="promptgen_model", value=available_models[0], choices=["None"] + available_models)
 
@@ -205,15 +212,15 @@ def add_tab():
         )
 
         send_to_txt2img.click(
-            fn=lambda x: x,
+            fn=send_prompts,
             inputs=[selected_text],
-            outputs=[find_prompt_input(ui.txt2img_paste_fields)]
+            outputs=find_prompts(ui.txt2img_paste_fields)
         )
 
         send_to_img2img.click(
-            fn=lambda x: x,
+            fn=send_prompts,
             inputs=[selected_text],
-            outputs=[find_prompt_input(ui.img2img_paste_fields)]
+            outputs=find_prompts(ui.img2img_paste_fields)
         )
 
     return [(tab, "Promptgen", "promptgen")]
