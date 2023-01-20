@@ -55,7 +55,7 @@ def get_model_path(name):
 
 
 def generate_batch(input_ids, min_length, max_length, num_beams, temperature, repetition_penalty, length_penalty, sampling_mode, top_k, top_p):
-    top_p = int(top_p) if sampling_mode == 'Top P' else None
+    top_p = float(top_p) if sampling_mode == 'Top P' else None
     top_k = int(top_k) if sampling_mode == 'Top K' else None
 
     outputs = current.model.generate(
@@ -171,7 +171,7 @@ def add_tab():
                     model_selection = gr.Dropdown(label="Model", elem_id="promptgen_model", value=available_models[0], choices=["None"] + available_models)
 
                 with FormRow():
-                    sampling_mode = gr.Radio(label="Sampling mode", elem_id="promptgen_sampling_mode", value="Top K", choices=["Top K", "Top P"], type="index")
+                    sampling_mode = gr.Radio(label="Sampling mode", elem_id="promptgen_sampling_mode", value="Top K", choices=["Top K", "Top P"])
                     top_k = gr.Slider(label="Top K", elem_id="promptgen_top_k", value=12, minimum=1, maximum=50, step=1)
                     top_p = gr.Slider(label="Top P", elem_id="promptgen_top_p", value=0.15, minimum=0, maximum=1, step=0.001)
 
