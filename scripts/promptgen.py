@@ -62,7 +62,7 @@ def generate_batch(input_ids, min_length, max_length, num_beams, temperature, re
         input_ids,
         do_sample=True,
         temperature=max(float(temperature), 1e-6),
-        repetition_penalty=repetition_penalty,
+        repetition_penalty=float(repetition_penalty),
         length_penalty=length_penalty,
         top_p=top_p,
         top_k=top_k,
