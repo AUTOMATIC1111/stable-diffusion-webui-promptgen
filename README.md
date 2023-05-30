@@ -25,7 +25,7 @@ AUTOMATIC/promptgen-lexart, AUTOMATIC/promptgen-majinai-safe, AUTOMATIC/promptge
 Reloading UI is required to apply this setting.
 
 ## Getting more models offline
-Put your models into the `models` directort inside the extension. For example, my model can be
+Put your models into the `models` directory inside the extension. For example, my model can be
 made fully offline by placing fines from https://huggingface.co/AUTOMATIC/promptgen-lexart/tree/main into
 those directories:
 
