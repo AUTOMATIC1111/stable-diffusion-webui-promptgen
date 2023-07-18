@@ -45,6 +45,10 @@ def list_available_models():
 
         available_models.append(name)
 
+def return_available_models():
+    list_available_models()
+    return available_models
+
 
 def get_model_path(name):
     dirname = os.path.join(models_dir, name)
@@ -84,34 +88,36 @@ def model_selection_changed(model_name):
         devices.torch_gc()
 
 
-def generate(id_task, model_name, batch_count, batch_size, text, *args):
+def api_generate(model_name, batch_count, batch_size, text, min_length, max_length, num_beams, temperature, repetition_penalty, length_penalty, sampling_mode, top_k, top_p):
     shared.state.textinfo = "Loading model..."
     shared.state.job_count = batch_count
-
-    if current.name != model_name:
-        current.tokenizer = None
-        current.model = None
-        current.name = None
-
-        if model_name != 'None':
-            path = get_model_path(model_name)
-            current.tokenizer = transformers.AutoTokenizer.from_pretrained(path)
-            current.model = transformers.AutoModelForCausalLM.from_pretrained(path)
-            current.name = model_name
-
-    assert current.model, 'No model available'
-    assert current.tokenizer, 'No tokenizer available'
-
-    current.model.to(device())
-
-    shared.state.textinfo = ""
+    setup_model(model_name)
 
     input_ids = current.tokenizer(text, return_tensors="pt").input_ids
     if input_ids.shape[1] == 0:
         input_ids = torch.asarray([[current.tokenizer.bos_token_id]], dtype=torch.long)
     input_ids = input_ids.to(device())
     input_ids = input_ids.repeat((batch_size, 1))
+    
+    prompts = []
+    for i in range(batch_count):
+        texts = generate_batch(input_ids, min_length, max_length, num_beams, temperature, repetition_penalty, length_penalty, sampling_mode, top_k, top_p)
+        shared.state.nextjob()
+        prompts.extend(texts)
+    return prompts
+    
 
+def generate(id_task, model_name, batch_count, batch_size, text, *args):
+    shared.state.textinfo = "Loading model..."
+    shared.state.job_count = batch_count
+    setup_model(model_name)
+
+    input_ids = current.tokenizer(text, return_tensors="pt").input_ids
+    if input_ids.shape[1] == 0:
+        input_ids = torch.asarray([[current.tokenizer.bos_token_id]], dtype=torch.long)
+    input_ids = input_ids.to(device())
+    input_ids = input_ids.repeat((batch_size, 1))
+    
     markup = '<table><tbody>'
 
     index = 0
@@ -137,6 +143,25 @@ def generate(id_task, model_name, batch_count, batch_size, text, *args):
     markup += '</tbody></table>'
 
     return markup, ''
+
+def setup_model(model_name):
+    if current.name != model_name:
+        current.tokenizer = None
+        current.model = None
+        current.name = None
+
+        if model_name != 'None':
+            path = get_model_path(model_name)
+            current.tokenizer = transformers.AutoTokenizer.from_pretrained(path)
+            current.model = transformers.AutoModelForCausalLM.from_pretrained(path)
+            current.name = model_name
+
+    assert current.model, 'No model available'
+    assert current.tokenizer, 'No tokenizer available'
+
+    current.model.to(device())
+
+    shared.state.textinfo = ""
 
 
 def find_prompts(fields):
