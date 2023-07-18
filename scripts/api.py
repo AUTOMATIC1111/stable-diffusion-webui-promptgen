@@ -33,7 +33,7 @@ def promptgen_api(_, app: FastAPI):
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    @app.post("/promptgen/generate_batch")
+    @app.post("/promptgen/generate")
     async def generate_prompts(prompt_request: PromptRequest):
         try:
             prompts = api_generate(
