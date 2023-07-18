@@ -27,7 +27,10 @@ models_dir = os.path.join(base_dir, "models")
 
 
 def device():
-    return devices.cpu if shared.opts.promptgen_device == 'cpu' else devices.device
+    if hasattr(shared.opts, "promptgen_device"):
+        return devices.cpu if shared.opts.promptgen_device == 'cpu' else devices.device
+    else:
+        return devices.cpu
 
 
 def list_available_models():
@@ -89,8 +92,7 @@ def model_selection_changed(model_name):
 
 
 def api_generate(model_name, batch_count, batch_size, text, min_length, max_length, num_beams, temperature, repetition_penalty, length_penalty, sampling_mode, top_k, top_p):
-    shared.state.textinfo = "Loading model..."
-    shared.state.job_count = batch_count
+    shared.state.job_count = batch_count  
     setup_model(model_name)
 
     input_ids = current.tokenizer(text, return_tensors="pt").input_ids
@@ -103,21 +105,23 @@ def api_generate(model_name, batch_count, batch_size, text, min_length, max_leng
     for i in range(batch_count):
         texts = generate_batch(input_ids, min_length, max_length, num_beams, temperature, repetition_penalty, length_penalty, sampling_mode, top_k, top_p)
         shared.state.nextjob()
+        for text in texts:
+            text = html.escape(text)
         prompts.extend(texts)
     return prompts
     
 
 def generate(id_task, model_name, batch_count, batch_size, text, *args):
-    shared.state.textinfo = "Loading model..."
-    shared.state.job_count = batch_count
+    
     setup_model(model_name)
+
 
     input_ids = current.tokenizer(text, return_tensors="pt").input_ids
     if input_ids.shape[1] == 0:
         input_ids = torch.asarray([[current.tokenizer.bos_token_id]], dtype=torch.long)
     input_ids = input_ids.to(device())
     input_ids = input_ids.repeat((batch_size, 1))
-    
+
     markup = '<table><tbody>'
 
     index = 0
@@ -145,6 +149,7 @@ def generate(id_task, model_name, batch_count, batch_size, text, *args):
     return markup, ''
 
 def setup_model(model_name):
+    shared.state.textinfo = "Loading model..."
     if current.name != model_name:
         current.tokenizer = None
         current.model = None
@@ -160,8 +165,8 @@ def setup_model(model_name):
     assert current.tokenizer, 'No tokenizer available'
 
     current.model.to(device())
-
     shared.state.textinfo = ""
+ 
 
 
 def find_prompts(fields):

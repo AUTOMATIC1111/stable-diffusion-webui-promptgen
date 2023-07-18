@@ -20,7 +20,7 @@ class PromptRequest(BaseModel):
     num_beams: int = Field(1, ge=1, le=8, description="Number of beams.")
     temperature: float = Field(1, ge=0, le=4, description="Temperature.")
     repetition_penalty: float = Field(1, ge=1, le=4, description="Repetition penalty.")
-    length_penalty: float = Field(1, ge=-10, le=10, description="Length preference.")
+    length_preference: float = Field(1, ge=-10, le=10, description="Length preference.")
     sampling_mode: SamplingMode = Field(SamplingMode.TopK, description="Sampling mode, Either 'Top K' or 'Top P'")
     top_k: int = Field(12, ge=1, le=50, description="Top K.")
     top_p: float = Field(0.15, ge=0, le=1, description="Top P.")
@@ -46,7 +46,7 @@ def promptgen_api(_, app: FastAPI):
                 num_beams=prompt_request.num_beams,
                 temperature=prompt_request.temperature,
                 repetition_penalty=prompt_request.repetition_penalty,
-                length_penalty=prompt_request.length_penalty,
+                length_penalty=prompt_request.length_preference,
                 sampling_mode=prompt_request.sampling_mode,
                 top_k=prompt_request.top_k,
                 top_p=prompt_request.top_p,
