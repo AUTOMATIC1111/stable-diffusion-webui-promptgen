@@ -1,6 +1,7 @@
 import html
 import os
 import time
+import re
 
 import torch
 import transformers
@@ -30,6 +31,7 @@ def device():
     if hasattr(shared.opts, "promptgen_device"):
         return devices.cpu if shared.opts.promptgen_device == 'cpu' else devices.device
     else:
+        os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
         return devices.cpu
 
 
@@ -105,8 +107,11 @@ def api_generate(model_name, batch_count, batch_size, text, min_length, max_leng
     for i in range(batch_count):
         texts = generate_batch(input_ids, min_length, max_length, num_beams, temperature, repetition_penalty, length_penalty, sampling_mode, top_k, top_p)
         shared.state.nextjob()
-        for text in texts:
+        for idx, text in enumerate(texts):
             text = html.escape(text)
+            text = text.replace('\n', ' ').replace('\r', ' ')  # replace newline and carriage return with space
+            text = re.sub('[^A-Za-z0-9 .,]+', '', text)  # keep alphanumeric characters, space, period, and comma
+            texts[idx] = ' '.join(text.split())  # remove excess spaces
         prompts.extend(texts)
     return prompts
     
@@ -267,7 +272,3 @@ def on_unload():
     current.model = None
     current.tokenizer = None
 
-
-script_callbacks.on_ui_tabs(add_tab)
-script_callbacks.on_ui_settings(on_ui_settings)
-script_callbacks.on_script_unloaded(on_unload)

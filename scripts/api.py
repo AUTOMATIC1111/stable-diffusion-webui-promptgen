@@ -3,6 +3,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from scripts.promptgen import api_generate, return_available_models
 
+import traceback
+
 from enum import Enum
 
 class SamplingMode(str, Enum):
@@ -53,7 +55,9 @@ def promptgen_api(_, app: FastAPI):
             )
             return {"prompts": prompts}
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+            tb = traceback.format_exc()  # This will capture the full traceback as a string.
+            detailed_error_message = f"{str(e)}\n\n{tb}"
+            raise HTTPException(status_code=500, detail=detailed_error_message)
         
 
 try:
