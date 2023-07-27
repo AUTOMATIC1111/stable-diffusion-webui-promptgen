@@ -1,6 +1,7 @@
 import html
 import os
 import time
+import re
 
 import torch
 import transformers
@@ -27,7 +28,11 @@ models_dir = os.path.join(base_dir, "models")
 
 
 def device():
-    return devices.cpu if shared.opts.promptgen_device == 'cpu' else devices.device
+    if hasattr(shared.opts, "promptgen_device"):
+        return devices.cpu if shared.opts.promptgen_device == 'cpu' else devices.device
+    else:
+        os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+        return devices.cpu
 
 
 def list_available_models():
@@ -44,6 +49,10 @@ def list_available_models():
             continue
 
         available_models.append(name)
+
+def return_available_models():
+    list_available_models()
+    return available_models
 
 
 def get_model_path(name):
@@ -84,27 +93,33 @@ def model_selection_changed(model_name):
         devices.torch_gc()
 
 
+def api_generate(model_name, batch_count, batch_size, text, min_length, max_length, num_beams, temperature, repetition_penalty, length_penalty, sampling_mode, top_k, top_p):
+    shared.state.job_count = batch_count  
+    setup_model(model_name)
+
+    input_ids = current.tokenizer(text, return_tensors="pt").input_ids
+    if input_ids.shape[1] == 0:
+        input_ids = torch.asarray([[current.tokenizer.bos_token_id]], dtype=torch.long)
+    input_ids = input_ids.to(device())
+    input_ids = input_ids.repeat((batch_size, 1))
+    
+    prompts = []
+    for i in range(batch_count):
+        texts = generate_batch(input_ids, min_length, max_length, num_beams, temperature, repetition_penalty, length_penalty, sampling_mode, top_k, top_p)
+        shared.state.nextjob()
+        for idx, text in enumerate(texts):
+            text = html.escape(text)
+            text = text.replace('\n', ' ').replace('\r', ' ')  # replace newline and carriage return with space
+            text = re.sub('[^A-Za-z0-9 .,]+', '', text)  # keep alphanumeric characters, space, period, and comma
+            texts[idx] = ' '.join(text.split())  # remove excess spaces
+        prompts.extend(texts)
+    return prompts
+    
+
 def generate(id_task, model_name, batch_count, batch_size, text, *args):
-    shared.state.textinfo = "Loading model..."
-    shared.state.job_count = batch_count
+    
+    setup_model(model_name)
 
-    if current.name != model_name:
-        current.tokenizer = None
-        current.model = None
-        current.name = None
-
-        if model_name != 'None':
-            path = get_model_path(model_name)
-            current.tokenizer = transformers.AutoTokenizer.from_pretrained(path)
-            current.model = transformers.AutoModelForCausalLM.from_pretrained(path)
-            current.name = model_name
-
-    assert current.model, 'No model available'
-    assert current.tokenizer, 'No tokenizer available'
-
-    current.model.to(device())
-
-    shared.state.textinfo = ""
 
     input_ids = current.tokenizer(text, return_tensors="pt").input_ids
     if input_ids.shape[1] == 0:
@@ -137,6 +152,26 @@ def generate(id_task, model_name, batch_count, batch_size, text, *args):
     markup += '</tbody></table>'
 
     return markup, ''
+
+def setup_model(model_name):
+    shared.state.textinfo = "Loading model..."
+    if current.name != model_name:
+        current.tokenizer = None
+        current.model = None
+        current.name = None
+
+        if model_name != 'None':
+            path = get_model_path(model_name)
+            current.tokenizer = transformers.AutoTokenizer.from_pretrained(path)
+            current.model = transformers.AutoModelForCausalLM.from_pretrained(path)
+            current.name = model_name
+
+    assert current.model, 'No model available'
+    assert current.tokenizer, 'No tokenizer available'
+
+    current.model.to(device())
+    shared.state.textinfo = ""
+ 
 
 
 def find_prompts(fields):
@@ -237,7 +272,3 @@ def on_unload():
     current.model = None
     current.tokenizer = None
 
-
-script_callbacks.on_ui_tabs(add_tab)
-script_callbacks.on_ui_settings(on_ui_settings)
-script_callbacks.on_script_unloaded(on_unload)
